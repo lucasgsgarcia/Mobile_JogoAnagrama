@@ -2,10 +2,16 @@
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
  public class MainActivity extends AppCompatActivity {
 
@@ -13,27 +19,102 @@ import java.util.ArrayList;
     TentativaFrag fragTentativa;
     AnagramaFrag anagramaFrag;
     ArrayList<String> historico;
+    ArrayList<String> palavras = new ArrayList<String>(Arrays.asList (new String[]{"PALAVRA", "TESTE", "TECNOLOGIA", "JAVA"}));
+    String palavraCorreta;
+    int numeroAleatorio;
+    int contadorAcertos = 0;
+    int contadorErros = 0;
+    int contadorDeTempo = 5;
+    Handler hdl;
+
+     public static String embaralhaPalavra(String s) {
+         List<String> letters = Arrays.asList(s.split(""));
+         Collections.shuffle(letters);
+         StringBuilder t = new StringBuilder(s.length());
+         for (String k : letters) {
+             t.append(k);
+         }
+         return t.toString();
+     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        fragListagem = (ListagemFrag) getFragmentManager().findFragmentByTag("fragLista");
+        fragListagem = (ListagemFrag) getFragmentManager().findFragmentByTag("fragListagem");
         fragTentativa = (TentativaFrag) getFragmentManager().findFragmentByTag("fragTentativa");
         anagramaFrag = ((AnagramaFrag) getFragmentManager().findFragmentByTag("fragAnagrama"));
         if(historico == null){
             historico = new ArrayList<String>();
         }
+        geraPalavraNovaAnagrama();
+        setaContadoresCorretamente();
+        hdl = new Handler( Looper.getMainLooper() );
+    }
 
+
+
+
+
+    class ContadorDeTempo extends AsyncTask<Integer, Integer, List<String>>{
+
+        @Override
+        protected List<String> doInBackground(Integer... integers) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) { e.printStackTrace(); }
+            return null;
+        }
+
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            anagramaFrag.tempoContador.setText(contadorDeTempo - 1);
+        }
+
+        @Override
+        protected void onPostExecute(List<String> tentativas) {
+
+        }
     }
 
     public void tentar(View v){
-        if(anagramaFrag.anagrama.getText().toString().equalsIgnoreCase(retornaStringTentativa())){
-            fragListagem.addHistorico(retornaStringTentativa());
+        if(palavraCorreta.equalsIgnoreCase(retornaStringTentativa())){
+            fragListagem.addHistorico(retornaStringTentativa().toUpperCase());
+            geraPalavraNovaAnagrama();
+            incrementarAcerto();
+        } else {
+            incrementarErro();
         }
     }
 
     public String retornaStringTentativa(){
         return fragTentativa.edTentativa.getText().toString();
     }
+
+    public void geraPalavraNovaAnagrama(){
+         geraNumeroAleatorio();
+        anagramaFrag.anagrama.setText(embaralhaPalavra(palavras.get(numeroAleatorio)));
+        palavraCorreta = palavras.get(numeroAleatorio);
+    }
+
+     public void geraNumeroAleatorio(){
+         int min = 0;
+         int max = palavras.size();
+         numeroAleatorio = (int) ((Math.random() * (max - min)) + min);
+     }
+
+     public void setaContadoresCorretamente(){
+        fragListagem.contadorAcertos.setText("Acertos: " + contadorAcertos);
+        fragListagem.contadorErros.setText("Erros: " + contadorErros);
+     }
+
+     public void incrementarAcerto(){
+         contadorAcertos += 1;
+         fragListagem.contadorAcertos.setText("Acertos: " + contadorAcertos);
+     }
+
+     public void incrementarErro(){
+         contadorErros += 1;
+         fragListagem.contadorErros.setText("Erros: " + contadorErros);
+     }
 }

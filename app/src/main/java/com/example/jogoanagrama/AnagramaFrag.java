@@ -13,6 +13,7 @@ import java.util.ArrayList;
 public class AnagramaFrag extends Fragment {
 
     TextView anagrama;
+    TextView tempoContador;
 
 
     public AnagramaFrag() {
@@ -26,6 +27,7 @@ public class AnagramaFrag extends Fragment {
                              Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_anagrama, container, false);
         anagrama = ((TextView) v.findViewById(R.id.txPalavra));
+        tempoContador = ((TextView) v.findViewById(R.id.tempoContador));
         return v;
     }
 

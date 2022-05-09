@@ -7,13 +7,26 @@
     tools:context=".ListagemFrag" >
 
 
-    <TextView
-        android:id="@+id/textView"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textAlignment="center"
-        android:text="Acertos" />
+        android:orientation="horizontal">
+    <TextView
+        android:id="@+id/tvContadorAcertos"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Acertos: "
+        android:layout_weight="1"
+        android:layout_gravity="left"/>
 
+    <TextView
+        android:id="@+id/tvContadorErros"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Erros: "
+        android:layout_weight="1"
+        android:layout_gravity="right"/>
+    </LinearLayout>
 
     <ListView
         android:layout_width="wrap_content"
