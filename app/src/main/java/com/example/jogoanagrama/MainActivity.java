@@ -2,16 +2,18 @@
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
  public class MainActivity extends AppCompatActivity {
 
@@ -24,8 +26,9 @@ import java.util.List;
     int numeroAleatorio;
     int contadorAcertos = 0;
     int contadorErros = 0;
-    int contadorDeTempo = 5;
     Handler hdl;
+    ContadorTempo contadorTempo;
+    ExecutorService exc = Executors.newSingleThreadExecutor();
 
      public static String embaralhaPalavra(String s) {
          List<String> letters = Arrays.asList(s.split(""));
@@ -50,39 +53,64 @@ import java.util.List;
         geraPalavraNovaAnagrama();
         setaContadoresCorretamente();
         hdl = new Handler( Looper.getMainLooper() );
+        iniciarContador();
     }
 
 
-
-
-
-    class ContadorDeTempo extends AsyncTask<Integer, Integer, List<String>>{
-
-        @Override
-        protected List<String> doInBackground(Integer... integers) {
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) { e.printStackTrace(); }
-            return null;
-        }
-
-        @Override
-        protected void onProgressUpdate(Integer... values) {
-            anagramaFrag.tempoContador.setText(contadorDeTempo - 1);
-        }
-
-        @Override
-        protected void onPostExecute(List<String> tentativas) {
-
+    public void iniciarContador(){
+        try {
+        contadorTempo = new ContadorTempo(5);
+        exc.execute(contadorTempo);
+        } catch (Exception e) {
+            Toast.makeText(this, "Deu ruim.",
+                    Toast.LENGTH_SHORT).show();
         }
     }
+
+     class ContadorTempo implements Runnable {
+         int tempoTotal;
+
+         boolean reiniciar = false;
+
+         public ContadorTempo(int tempo) {
+             tempoTotal = tempo;
+         }
+
+         public void reiniciar() {
+             reiniciar = true;
+         }
+
+         public void run() {
+             try {
+                 for (int i = 1; i < tempoTotal + 2; i++) {
+                     if ( reiniciar ) { i = 1; reiniciar = false;}
+                     Thread.sleep(1000);
+                     final int tempoAtual = i - 1;
+                     hdl.post( new Runnable() {
+                         public void run() {
+                             anagramaFrag.tempoContador.setText( String.valueOf(tempoAtual) );
+                         }
+                     });
+                 }
+                 reiniciar = true;
+                 contadorTempo = new ContadorTempo(5);
+                 exc.execute(contadorTempo);
+                 incrementarErro();
+             } catch(Throwable t) {
+                 t.printStackTrace();
+             }
+         }
+     }
+
 
     public void tentar(View v){
         if(palavraCorreta.equalsIgnoreCase(retornaStringTentativa())){
+            contadorTempo.reiniciar();
             fragListagem.addHistorico(retornaStringTentativa().toUpperCase());
             geraPalavraNovaAnagrama();
             incrementarAcerto();
         } else {
+            contadorTempo.reiniciar();
             incrementarErro();
         }
     }
